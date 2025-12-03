@@ -31,7 +31,7 @@ def main():
                 sys.exit(1)
             
             if ssh_me.client is None:
-                log('')
+                log('SSH main client was offline.')
                 adb_inst.notify('Enable_SSH')
                 sys.exit(1)
 
