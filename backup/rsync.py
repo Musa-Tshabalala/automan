@@ -1,5 +1,6 @@
 from core.utils import log, run
 from core.config import relay, src
+import asyncio
 
 class RSync:
     def __init__(self, client, adb, ssh):
@@ -48,3 +49,22 @@ class RSync:
             self.completed = False
             self.error = push
             return self
+        
+async def push(self, ssh):
+    ssh.notify('Server Push', f'Uploading new downloads')
+    ip = ssh.host
+    port = ssh.port
+    user = ssh.user
+    rsync_opts = '-avz --partial --delay-updates --ignore-existing --bwlimit=5000 --compress-level=1'
+    path = '/home/musa/downloads'
+    sync = f"rsync {rsync_opts} -e 'ssh -p {port}' '{path}' {user}@{ip}:~/storage/shared/automan"
+    loop = asyncio.get_event_loop()
+
+    res = await loop.run_in_executor(None, lambda: run(sync))
+    
+    if 'sent' in res:
+        log(res)
+        loop.run_in_executor(None, lambda: ssh.notify('Server Push', f'New downloads successfully uploaded.'))
+    else:
+        log(res)
+        loop.run_in_executor(None, lambda: ssh.notify('Server Push', f'Could not upload new downloads'))

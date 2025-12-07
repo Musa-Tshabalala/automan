@@ -67,7 +67,7 @@ class SyncService:
 
                 if windows_ssh.client is not None:
                     sync = RSync(client, self.adb_me, self.ssh_me)
-                    log(f'{windows_client[0]['brand']} [{ip}] attempting to push to Windows...')
+                    log(f'{client['brand']} [{ip}] attempting to push to Windows...')
                     self.adb_me.push_log()
                     self.ssh_me.notify('Upload Attempt', f'{ip} -> Windows')
                     download = sync.upload()

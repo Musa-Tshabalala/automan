@@ -1,6 +1,9 @@
-import subprocess
-from .config import logfile, date_time
-import re
+from .config import logfile, date_time, headers
+from bs4 import BeautifulSoup
+import re, requests, subprocess, json
+
+################################################################################################
+# General Utils --------------------------------------------------------------------------------
 
 def run(cmd, **kwargs):
     try:
@@ -26,3 +29,40 @@ def is_valid_ip(ip, db):
         return { 'ok': True, 'payload': device } if device else { 'ok': False, 'error': 'Unregisterd IP address' }
     else:
         return { 'ok': False,  'error': 'Invalid IP address' }
+
+###############################################################################################
+# Utils for torrent ---------------------------------------------------------------------------
+
+def soup(url):
+    res = requests.get(url, headers=headers)
+    return BeautifulSoup(res.text, 'html.parser')
+
+def imdb(meta):
+    id = meta['id'].strip()
+    if not id:
+        return None
+    
+    URL = (
+        f'https://www.imdb.com/title/{id}/' 
+        if meta['type'] == 'movie' 
+        else f"https://www.imdb.com/title/{id}/episodes?season={meta['s']}"
+    )
+ 
+    bsoup = soup(URL)
+    try:
+        script_tag = bsoup.find('script', id='__NEXT_DATA__', type='application/json')
+        data = json.loads(script_tag.string)
+        if meta['type'] != 'movie':
+            episodes = (
+                data['props']['pageProps']['contentData']['section']['episodes']['items']
+            )
+            return next((x for x in episodes if x['episode'] == meta['e']), None)
+        else:
+            movie = data['props']['pageProps']['aboveTheFoldData']
+            return movie
+        
+    except Exception as e:
+        log(f'ERROR: {e}')
+        return None
+    
+############################################################################################

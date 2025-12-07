@@ -15,3 +15,4 @@ src = f'~/storage/shared/{args.source}' if args.source else '~/storage/shared/Do
 relay = str(Path.home() / "stage")
 logfile = f'{relay}/logs/sync-{datetime.now():%Y%m%d}.log'
 dest = "C:/Users/TRUser/My_Phone"
+headers = {"User-Agent": "Mozilla/5.0"}

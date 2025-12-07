@@ -11,7 +11,7 @@ from dotenv import load_dotenv
 
 load_dotenv()
 
-my_db = os.getenv('DBNAME')
+my_db = os.getenv('DEVICES_DB')
 db_user = os.getenv('DBUSER')
 db_pass = os.getenv('DBPASS')
 ssh_key_file = os.getenv('SSHKEYFILE')
