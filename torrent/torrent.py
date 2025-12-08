@@ -35,7 +35,7 @@ class Torrent:
 
             if magnet is not None:
                 title = 'Downloading'
-                content = f"{meta['title'].title()}: {torrent.name}" if meta['type'] == 'series' else torrent
+                content = f"{meta['title'].title()}: {torrent.name}" if meta['type'] == 'series' else torrent.name
                 log(f'Beginning download:\n{content}')
                 ssh.notify(title, content)
                 downloaded = torrent.download()
