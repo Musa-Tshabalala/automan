@@ -42,9 +42,7 @@ with DB(db_name, db_pass, db_user, 'localhost') as torr:
     while not id.startswith('tt') or len(id) < 7:
         clear()
         id = input(f'Enter valid ID for the {torr_type} (ttxxxxxx):\n').strip()
-
-    print('Your Id:', id)
-
+        
     title = ''
 
     while not title or len(title) <= 2:
@@ -104,7 +102,7 @@ with DB(db_name, db_pass, db_user, 'localhost') as torr:
         if entry == 'INSERT 0 1':
             print('Your entry has been recorded')
         else:
-            print('Your entry was unsuccessfull:', entry)
+            print('Your entry was successfull:', entry)
     else:
         clear()
         print('Upload unsuccessfull, start again!')
