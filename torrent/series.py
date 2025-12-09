@@ -1,6 +1,7 @@
 from .show import Show
+from pathlib import Path
 from core.utils import soup, imdb, run, log
-import re
+import re, shutil, os
 
 class Series(Show):
     def search(self):
@@ -10,12 +11,14 @@ class Series(Show):
         s = self._meta['s']
         e = self._meta['e']
         ep = ''
+
         try:
             ep += f'S0{s}' if int(s) < 10 else f'S{s}'
             ep += f'E0{e}' if int(e) < 10 else f'E{e}'
         except ValueError:
             self.magnet = None
             return self.magnet
+
         bsoup = soup(url)
         magnet = bsoup.find('a', href = lambda x: x and x.startswith('magnet:') and ep in x)
         imdb_data = imdb(self._meta)
@@ -25,50 +28,41 @@ class Series(Show):
     
     def format(self):
         if self._path is None:
+            log(f'ERROR:\n{self._path} is not a working directory.')
             raise Exception('Cannot rename an unexisting file.')
         
         s = self._meta['s']
         e = f"{int(self._meta['e']):02}"     # Formats 1 → 01, 9 → 09, 10 → 10
-        rename_title = f"{e}. {self._name}.mkv" if self._name is not None else f'Episode {e}.mkv'
+        rename_title = f"{e}. {re.sub(r'\:+', ' -', self._name)}.mkv" if self._name is not None else f'Episode {e}.mkv'
 
-        # Create season directory
-        mkdir = f"mkdir -p '{self._path}/Season {s}'"
-        if run(mkdir):
+        base_path = Path(self._path)
+        season_folder = base_path / f'Season {s}'
+
+        season_folder.mkdir(parents=True, exist_ok=True)
+
+        mkv = None
+        episode_folder = None
+        new_mkv = season_folder / rename_title
+
+        for child in base_path.iterdir():
+            if child.suffix.lower() == '.aria2':
+                os.remove(child)
+
+            if child.suffix.lower() == '.mkv':
+                mkv = child
+                shutil.move(str(child), str(new_mkv))
+            else:
+                if f'E{e}' in child.name and child.is_dir():
+                    episode_folder = child
+
+        if mkv is not None:
             return
-
-        # Find episode folder
-        find_episode_folder = f"ls {self._path} | grep 'E{e}' | grep -v .aria"
-        aria_file = run(f"ls {self._path} | grep .aria")
-        if aria_file:
-            log(f"Removing aria file: {aria_file}")
-            run(f" rm '{self._path}/{aria_file}'")
-
-        episode_folder = run(find_episode_folder).strip()
-
-        if not episode_folder:
-            log(f"episode folder for {rename_title} not found")
-            return
-
-        episode_path = f"{self._path}/{episode_folder}"
-
-        # Find the mkv
-        find_mkv = f"ls '{episode_path}' | grep '.mkv'"
-        mkv_file = run(find_mkv).strip()
-
-        if f'E{e}' not in mkv_file:
-            log(f"No mkv file found for {rename_title}")
-            return
-
-        # Rename and move file
-        move_cmd = (
-            f"mv '{episode_path}/{mkv_file}' "
-            f"'{self._path}/Season {s}/{rename_title}'"
-        )
-
-        if not run(move_cmd):
-            # remove episode folder
-            log(f"{mkv_file} has been renamed to {rename_title}")
-            run(f"rm -rf '{episode_path}'")
+        
+        for file in episode_folder.iterdir():
+            if file.suffix.lower() == '.mkv':
+                shutil.move(str(file), str(new_mkv))
+                shutil.rmtree(episode_folder)
+        
 
 
         

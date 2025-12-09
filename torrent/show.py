@@ -48,25 +48,5 @@ class Show(ABC):
             return
         return self.downloaded
 
-    async def push(self, ssh):
-        ssh.notify('Server Push', f'Uploading: {self._name}')
-        ip = ssh.host
-        port = ssh.port
-        user = ssh.user
-        rsync_opts = '-avz --partial --delay-updates --ignore-existing --bwlimit=5000 --compress-level=1'
-        path = self._path
-        sync = f"rsync {rsync_opts} -e 'ssh -p {port}' '{path}' {user}@{ip}:~/storage/shared/automan"
-        loop = asyncio.get_event_loop()
-
-        res = await loop.run_in_executor(None, lambda: run(sync))
-        
-        if 'sent' in res:
-            log(res)
-            loop.run_in_executor(None, lambda: ssh.notify('Server Push', f'{self._name} successfully uploaded.'))
-        else:
-            log(res)
-            loop.run_in_executor(None, lambda: ssh.notify('Server Push', f'Could not upload {self._name}'))
-
-
 
 

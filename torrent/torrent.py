@@ -44,7 +44,7 @@ class Torrent:
                     new_torrent = True
                     log(f'Download Complete:\n{torrent.name}')
                     adb.push_log()
-                    ssh.notify('Downloads', f'{torrent.name} successfully downloaded!')
+                    ssh.notify('Downloads', f'{torrent.name}: Complete!')
                     torrent.format()
                     id = meta['id']
                     if meta['type'] == 'series':
