@@ -11,7 +11,7 @@ class Movie(Show):
         y = self._meta['y']
         px = '1080p'
         bsoup = soup(url)
-        magnet = bsoup.find('a', href = lambda x: x and x.startswith('magnet:') and y and px in x)
+        magnet = bsoup.find('a', href = lambda x: x and x.startswith('magnet:') and y in x and px in x)
         imdb_data = imdb(self._meta)
         self._name = imdb_data['titleText']['text'] if imdb_data is not None else title
         self.magnet = magnet['href'] if magnet is not None else None
@@ -20,31 +20,34 @@ class Movie(Show):
     def format(self):
         base_path = Path(self._path)
         mov_folder = None
-        mov_name = f"{re.sub(r'\:+', ' -', self._name)}.mp4"
+        mov_name = f"{re.sub(r'\:+', ' -', self._name)}"
+        movie_in_base = None
+        movie_path = base_path / mov_name
 
         for child in base_path.iterdir():
             if child.suffix.lower() == '.aria2':
                 os.remove(child)
-            if 'bluray' in child.name.lower() and child.is_dir():
-                mov_folder = child
+                
+            if child.suffix.lower() == '.mp4' or child.suffix.lower() == '.mkv':
+                movie = str(movie_path) + child.suffix.lower()
+                movie_in_base = child
+                shutil.move(str(child), movie)
+            else:
+                if 'bluray' in child.name.lower() and child.is_dir():
+                    mov_folder = child
         
-        if not mov_folder:
-            log(f'Folder for {mov_name} was not found.')
+        if movie_in_base is not None:
+            return
+        
+        if mov_folder is None:
+            log(f'{mov_name} was not found.')
             return
 
-        movie = None
         for file in mov_folder.iterdir():
-            if file.suffix.lower() == '.mp4':
-                movie = file
-                break
-        
-        if not movie:
-            log(f"Movie not found: {mov_name}")
-            return
-        
-        new_movie = base_path / mov_name
-        shutil.move(str(movie), str(new_movie))
-        shutil.rmtree(mov_folder)
+            if file.suffix.lower() == '.mp4' or file.suffix.lower() == '.mkv':
+                movie = str(movie_path) + file.suffix.lower()
+                shutil.move(str(file), movie)
+                shutil.rmtree(str(mov_folder))
 
 
         

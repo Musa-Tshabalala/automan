@@ -3,7 +3,7 @@ from .movie import Movie
 from .series import Series
 from core.utils import log
 from backup.rsync import push
-import asyncio
+import asyncio, sys
 
 class Torrent:
     def __init__(self, adb_client, ssh_client):
@@ -32,6 +32,10 @@ class Torrent:
                 continue
             
             magnet = torrent.search()
+
+            if magnet is not None:
+                print(magnet)
+                sys.exit(0)
 
             if magnet is not None:
                 title = 'Downloading'

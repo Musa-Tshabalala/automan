@@ -58,6 +58,10 @@ class Series(Show):
         if mkv is not None:
             return
         
+        if episode_folder is None:
+            log(f'ERROR: {new_mkv} could not be found.')
+            return
+        
         for file in episode_folder.iterdir():
             if file.suffix.lower() == '.mkv':
                 shutil.move(str(file), str(new_mkv))

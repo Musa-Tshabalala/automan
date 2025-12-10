@@ -36,10 +36,10 @@ class Show(ABC):
         cmd = f"aria2c --seed-ratio=0 --seed-time=0 --dir='{path}' '{self.magnet}'"
         download = run(cmd)
 
-        ep = self._name if self._name is not None else f"Episode {self._meta['e']}"
+        torr = self._name if self._name is not None else self._title.title()
 
         if '(OK):download completed.' in download:
-            log(f'Downloads: {self._title.title()}: {ep} completed successfully!')
+            log(f'Downloads: {self._title.title()}: {torr} completed successfully!')
             self.downloaded = True
             return
         if 'aborted' in download or 'ERROR' in download:
