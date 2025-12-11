@@ -34,10 +34,6 @@ class Torrent:
             magnet = torrent.search()
 
             if magnet is not None:
-                print(magnet)
-                sys.exit(0)
-
-            if magnet is not None:
                 title = 'Downloading'
                 content = f"{meta['title'].title()}: {torrent.name}" if meta['type'] == 'series' else torrent.name
                 log(f'Beginning download:\n{content}')
