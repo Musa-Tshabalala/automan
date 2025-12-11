@@ -20,9 +20,11 @@ class Movie(Show):
     def format(self):
         base_path = Path(self._path)
         mov_folder = None
-        mov_name = f"{re.sub(r'\:+', ' -', self._name)}"
+        mov_name = f"{re.sub(r'\:+', ' -', self._name)} " + f"({self.meta['y']})"
         movie_in_base = None
         movie_path = base_path / mov_name
+
+        base_path.mkdir(parents=True, exist_ok=True)
 
         for child in base_path.iterdir():
             if child.suffix.lower() == '.aria2':

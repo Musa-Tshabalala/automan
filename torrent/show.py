@@ -29,8 +29,9 @@ class Show(ABC):
         if self.magnet is None:
             raise ValueError(f'{self.magnet} is invalid for downloads')
 
-        base_dir = os.path.expanduser("~/downloads")
-        path = os.path.join(base_dir, self._title.title())
+        category = 'SERIES' if self.meta['type'] == 'series' else 'MOVIES'
+        base_dir = os.path.expanduser(f"~/downloads/{category}")
+        path = os.path.join(base_dir, self._title.title()) if self.meta['type'] == 'series' else base_dir 
         self._path = path
 
         cmd = f"aria2c --seed-ratio=0 --seed-time=0 --dir='{path}' '{self.magnet}'"

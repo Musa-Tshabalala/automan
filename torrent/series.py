@@ -1,6 +1,6 @@
 from .show import Show
 from pathlib import Path
-from core.utils import soup, imdb, run, log
+from core.utils import soup, imdb, log
 import re, shutil, os
 
 class Series(Show):

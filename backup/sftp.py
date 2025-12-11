@@ -31,3 +31,32 @@ def sftp(client, payload, adb, ssh):
             return { 'ok': False, 'error': str(e) }
         finally:
             client.close()
+        
+def torr_sftp(client, src, dest):
+    try:
+        sftp = client.open_sftp()
+
+        def sftp_upload(local_dir, remote_dir):
+            try:
+                sftp.stat(remote_dir)
+            except FileNotFoundError:
+                sftp.mkdir(remote_dir)
+
+            for entry in os.listdir(local_dir):
+                local_path = os.path.join(local_dir, entry)
+                remote_path = f"{remote_dir}/{entry}"
+
+                if os.path.isdir(local_path):
+                    sftp_upload(local_path, remote_path)
+                else:
+                    try:
+                        sftp.stat(remote_path)
+                        print(f"Skipping existing file: {remote_path}")
+                    except FileNotFoundError:
+                        sftp.put(local_path, remote_path)
+
+        sftp_upload(src, dest)
+        return True, 'Done!'
+    except Exception as e:
+        log(f'Downloads could not transfer: {e}')
+        return False, e

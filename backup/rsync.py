@@ -51,7 +51,7 @@ class RSync:
             return self
         
 async def push(ssh):
-    ssh.notify('Server Push', f'Uploading new downloads')
+    ssh.notify('Server Push', f'Uploading Downloads.')
     ip = ssh.host
     port = ssh.port
     user = ssh.user
@@ -64,7 +64,7 @@ async def push(ssh):
     
     if 'sent' in res:
         log(res)
-        loop.run_in_executor(None, lambda: ssh.notify('Server Push', f'New downloads successfully uploaded.'))
+        loop.run_in_executor(None, lambda: ssh.notify('Server Push', f'Upload Successfull!'))
     else:
         log(res)
         loop.run_in_executor(None, lambda: ssh.notify('Server Push', f'Could not upload new downloads'))

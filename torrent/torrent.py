@@ -2,13 +2,17 @@
 from .movie import Movie
 from .series import Series
 from core.utils import log
+from core.ssh import SSH
+from backup.sftp import torr_sftp
 from backup.rsync import push
-import asyncio, sys
+from core.config import torr_dest
+import asyncio, time, os
 
 class Torrent:
-    def __init__(self, adb_client, ssh_client):
+    def __init__(self, adb_client, ssh_client, win_me):
         self.__adb = adb_client
         self.__ssh = ssh_client
+        self.win_me = win_me
         
     def start(self, torr, torr_db):
         if not isinstance(torr, (list, tuple)):
@@ -68,7 +72,22 @@ class Torrent:
                 continue
 
         if new_torrent:
-            asyncio.run(push(ssh))
+            with SSH(self.win_me, ssh.key_file) as windows:
+                attempt = 0
+                tries = 3
+                powershell = windows.connect()
+                while powershell.client is None and attempt < tries:
+                    attempt += 1
+                    powershell = windows.connect()
+                    if powershell.client is None:
+                        ssh.notify('Windows', f'Enable SSH on windows. Attempt {attempt} of {tries}')
+                        time.sleep(300)
+                if powershell.client is None:
+                    asyncio.run(push(ssh))
+                else:
+                    src = os.path.expanduser('~/downloads')
+                    ssh.notify('Server Push', 'Pushing downloads to windows')
+                    torr_sftp(powershell.client, src, torr_dest)
 
                 
 

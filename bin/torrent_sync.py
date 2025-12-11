@@ -23,6 +23,7 @@ def main():
 
         dev_db = DB(devices_db, db_pass, db_user, 'localhost')
         me = dev_db.query('SELECT * FROM devices WHERE id = 1;')[0]
+        win_me = dev_db.query('SELECT * FROM devices WHERE id = 2;')[0]
 
         dev_db.close()
 
@@ -52,7 +53,7 @@ def main():
                 log('SSH main client was offline.')
                 sys.exit(1)
 
-            torrent = Torrent(adb_inst, ssh)
+            torrent = Torrent(adb_inst, ssh, win_me)
             torrent.start(torr, torr_db)
 
 if __name__ == '__main__':
