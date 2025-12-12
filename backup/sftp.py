@@ -56,7 +56,7 @@ def torr_sftp(client, src, dest):
                         sftp.put(local_path, remote_path)
 
         sftp_upload(src, dest)
-        return True, 'Done!'
+        return True, 'Windows Upload Done!'
     except Exception as e:
         log(f'Downloads could not transfer: {e}')
         return False, e

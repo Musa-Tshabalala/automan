@@ -1,10 +1,10 @@
+import os, sys, time
+from core.utils import log
 from torrent.torrent import Torrent
 from core.ssh import SSH
 from core.adb import ADB
 from core.db import DB
-from core.utils import log
 from dotenv import load_dotenv
-import os, sys, time
 
 load_dotenv()
 
@@ -20,6 +20,14 @@ def main():
 
         if not torr:
             return
+        
+        LOCK_FILE = "/tmp/torrent_sync.lock"
+
+        if os.path.exists(LOCK_FILE):
+            log('Script is already running!')
+            sys.exit()
+
+        open(LOCK_FILE, 'w').close()
 
         dev_db = DB(devices_db, db_pass, db_user, 'localhost')
         me = dev_db.query('SELECT * FROM devices WHERE id = 1;')[0]
@@ -55,6 +63,7 @@ def main():
 
             torrent = Torrent(adb_inst, ssh, win_me)
             torrent.start(torr, torr_db)
+            os.remove(LOCK_FILE)
 
 if __name__ == '__main__':
     main()

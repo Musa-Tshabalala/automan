@@ -83,11 +83,21 @@ class Torrent:
                         ssh.notify('Windows', f'Enable SSH on windows. Attempt {attempt} of {tries}')
                         time.sleep(300)
                 if powershell.client is None:
+                    log('Windows push failed, switched to termux push')
                     asyncio.run(push(ssh))
                 else:
                     src = os.path.expanduser('~/downloads')
                     ssh.notify('Server Push', 'Pushing downloads to windows')
-                    torr_sftp(powershell.client, src, torr_dest)
+                    ok, msg = torr_sftp(powershell.client, src, torr_dest)
+
+                    if ok:
+                        log(msg)
+                        adb.push_log()
+                        ssh.notify('Server Push', msg)
+        
+                    
+
+
 
                 
 
