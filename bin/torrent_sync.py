@@ -21,14 +21,6 @@ def main():
         if not torr:
             return
         
-        LOCK_FILE = "/tmp/torrent_sync.lock"
-
-        if os.path.exists(LOCK_FILE):
-            log('Script is already running!')
-            sys.exit()
-
-        open(LOCK_FILE, 'w').close()
-
         dev_db = DB(devices_db, db_pass, db_user, 'localhost')
         me = dev_db.query('SELECT * FROM devices WHERE id = 1;')[0]
         win_me = dev_db.query('SELECT * FROM devices WHERE id = 2;')[0]
@@ -60,6 +52,14 @@ def main():
             if ssh.client is None:
                 log('SSH main client was offline.')
                 sys.exit(1)
+
+            LOCK_FILE = "/tmp/torrent_sync.lock"
+
+            if os.path.exists(LOCK_FILE):
+                log('Script is already running!')
+                sys.exit()
+
+            open(LOCK_FILE, 'w').close()
 
             torrent = Torrent(adb_inst, ssh, win_me)
             torrent.start(torr, torr_db)
