@@ -12,9 +12,12 @@ class Movie(Show):
         px = '1080p'
         bsoup = soup(url)
         magnet = bsoup.find('a', href = lambda x: x and x.startswith('magnet:') and y in x and px in x)
+        if magnet is None:
+            return
+        
         imdb_data = imdb(self._meta)
         self._name = imdb_data['titleText']['text'] if imdb_data is not None else title
-        self.magnet = magnet['href'] if magnet is not None else None
+        self.magnet = magnet['href']
         return self.magnet
     
     def format(self):

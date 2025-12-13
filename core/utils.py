@@ -1,6 +1,9 @@
-from .config import logfile, date_time, headers
+from .config import logfile, headers
 from bs4 import BeautifulSoup
 import re, requests, subprocess, json
+from datetime import datetime
+from datetime import datetime
+from zoneinfo import ZoneInfo
 
 ################################################################################################
 # General Utils --------------------------------------------------------------------------------
@@ -15,8 +18,13 @@ def run(cmd, **kwargs):
     
 # Appends output state to_dev file:
 def log(msg):
+    
+    my_time_zone = datetime.now(ZoneInfo("Africa/Johannesburg"))
+    now = my_time_zone.strftime(f"Date: %Y/%m/%d\nTime: %H:%M")
+
     with open(logfile, 'a') as f:
-        f.write(f'{date_time}\n{msg}\n--- --- ---\n')
+        f.write(f'{now}\n{msg}\n--- --- ---\n')
+    
 
 def is_valid_ip(ip, db):
     octet = '(25[0-5]|2[0-4][0-9]|1[0-9]{2}|[1-9]?[0-9])'

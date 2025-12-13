@@ -15,6 +15,12 @@ db_pass = os.getenv('DBPASS')
 ssh_key_file = os.getenv('SSHKEYFILE')
 
 def main():
+    LOCK_FILE = "/tmp/torrent_sync.lock"
+
+    if os.path.exists(LOCK_FILE):
+        log('Script is already running!')
+        sys.exit()
+
     with DB(torrent_db, db_pass, db_user, 'localhost') as torr_db:
         torr = torr_db.query('SELECT * FROM torrents')
 
@@ -32,7 +38,7 @@ def main():
 
         if adb is None:
             log(f'Could not be reached to initialize torrent services')
-            sys.exit(1)
+            sys.exit()
         
         with SSH(me, ssh_key_file) as ssh_inst:
             tries = 3
@@ -51,14 +57,8 @@ def main():
             
             if ssh.client is None:
                 log('SSH main client was offline.')
-                sys.exit(1)
-
-            LOCK_FILE = "/tmp/torrent_sync.lock"
-
-            if os.path.exists(LOCK_FILE):
-                log('Script is already running!')
                 sys.exit()
-
+            
             open(LOCK_FILE, 'w').close()
 
             torrent = Torrent(adb_inst, ssh, win_me)

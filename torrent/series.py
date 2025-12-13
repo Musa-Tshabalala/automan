@@ -16,20 +16,22 @@ class Series(Show):
             ep += f'S0{s}' if int(s) < 10 else f'S{s}'
             ep += f'E0{e}' if int(e) < 10 else f'E{e}'
         except ValueError:
-            self.magnet = None
-            return self.magnet
+            return
 
         bsoup = soup(url)
         magnet = bsoup.find('a', href = lambda x: x and x.startswith('magnet:') and ep in x)
+        if magnet is None:
+            return
+        
         imdb_data = imdb(self._meta)
         self._name = imdb_data['titleText'] if imdb_data is not None else None
-        self.magnet = magnet['href'] if magnet is not None else None
+        self.magnet = magnet['href']
         return self.magnet
     
     def format(self):
         if self._path is None:
             log(f'ERROR:\n{self._path} is not a working directory.')
-            raise Exception('Cannot rename an unexisting file.')
+            return
         
         s = self._meta['s']
         e = f"{int(self._meta['e']):02}"     # Formats 1 → 01, 9 → 09, 10 → 10
