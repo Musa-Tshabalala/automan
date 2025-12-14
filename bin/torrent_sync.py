@@ -63,6 +63,7 @@ def main():
 
             torrent = Torrent(adb_inst, ssh, win_me)
             torrent.start(torr, torr_db)
+            adb_inst.push_log()
             os.remove(LOCK_FILE)
 
 if __name__ == '__main__':

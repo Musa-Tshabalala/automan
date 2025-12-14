@@ -19,8 +19,11 @@ def run(cmd, **kwargs):
 # Appends output state to_dev file:
 def log(msg):
     
-    my_time_zone = datetime.now(ZoneInfo("Africa/Johannesburg"))
-    now = my_time_zone.strftime(f"Date: %Y/%m/%d\nTime: %H:%M")
+    now = (
+        datetime
+        .now(ZoneInfo("Africa/Johannesburg"))
+        .strftime(f"Date: %Y/%m/%d\nTime: %H:%M")
+        )
 
     with open(logfile, 'a') as f:
         f.write(f'{now}\n{msg}\n--- --- ---\n')

@@ -21,6 +21,8 @@ class Torrent:
         ssh = self.__ssh
         adb = self.__adb 
         new_torrent = False
+        downloads = []
+        non_downloads = []
 
         for meta in torr:
             torrent = None
@@ -45,7 +47,8 @@ class Torrent:
                 torrent.download()
 
                 if torrent.downloaded:
-                    new_torrent = True
+                    download = f"{torrent._name} (Episode {meta['e']})" if meta['type'] == 'series' else {torrent._name}
+                    downloads.append(download)
                     log(f'Download Complete:\n{torrent.name}')
                     adb.push_log()
                     ssh.notify('Downloads', f'{torrent.name}: Complete!')
@@ -68,11 +71,17 @@ class Torrent:
                         torr_db.execute("DELETE FROM torrents WHERE id = %s", (id,))
             else:
                 message = f"{meta['type'].title()} has not been found yet: {meta['title'].title()}"
+                non_downloads.append(meta['title'])
                 log(message)
                 continue
 
-        if new_torrent:
+        if non_downloads:
+            log(f'Shows Skipped:\n{"\n".join(non_downloads)}'.strip())
+
+
+        if downloads:
             with SSH(self.win_me, ssh.key_file) as windows:
+                log(f"Downloads:\n{"\n".join(downloads)}".strip())
                 attempt = 0
                 tries = 3
                 powershell = windows.connect()
