@@ -70,9 +70,7 @@ class Torrent:
                     else:
                         torr_db.execute("DELETE FROM torrents WHERE id = %s", (id,))
             else:
-                message = f"{meta['type'].title()} has not been found yet: {meta['title'].title()}"
                 non_downloads.append(meta['title'])
-                log(message)
                 continue
 
         if non_downloads:
