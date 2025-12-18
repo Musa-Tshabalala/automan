@@ -1,6 +1,6 @@
 from abc import abstractmethod, ABC
 from core.utils import run, log
-import os, asyncio
+import os
 
 class Show(ABC):
     site = 'https://thepibay.site/search/'
@@ -22,7 +22,7 @@ class Show(ABC):
         return self._name
     
     @abstractmethod
-    def search(self, title):
+    def search(self):
         pass
 
     def download(self):
@@ -43,11 +43,9 @@ class Show(ABC):
             log(f'Downloads: {self._title.title()}: {torr} completed successfully!')
             self.downloaded = True
             return
-        if 'aborted' in download or 'ERROR' in download:
-            log(f'Download failed for {self._title}')
-            self.downloaded = False
+        else:
+            log(f'Download failed for {self._title}\nERROR:\n{download}')
             return
-        return self.downloaded
 
 
 

@@ -8,15 +8,7 @@ class Series(Show):
         title = self._meta['title']
         search_string = re.sub(r'\s+', '.', title.strip()).lower()
         url = Show.site + search_string + '.elite'
-        s = self._meta['s']
-        e = self._meta['e']
-        ep = ''
-
-        try:
-            ep += f'S0{s}' if int(s) < 10 else f'S{s}'
-            ep += f'E0{e}' if int(e) < 10 else f'E{e}'
-        except ValueError:
-            return
+        ep = f"S{int(self._meta['s']):02}E{int(self._meta['e']):02}"
 
         bsoup = soup(url)
         magnet = bsoup.find('a', href = lambda x: x and x.startswith('magnet:') and ep in x)
@@ -34,7 +26,7 @@ class Series(Show):
             return
         
         s = self._meta['s']
-        e = f"{int(self._meta['e']):02}"     # Formats 1 → 01, 9 → 09, 10 → 10
+        e = f"{int(self._meta['e']):02}"
         rename_title = f"{e}. {re.sub(r'\:+', ' -', self._name)}.mkv" if self._name is not None else f'Episode {e}.mkv'
 
         base_path = Path(self._path)

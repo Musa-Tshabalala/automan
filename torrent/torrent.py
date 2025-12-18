@@ -1,4 +1,3 @@
-
 from .movie import Movie
 from .series import Series
 from core.utils import log
@@ -20,7 +19,6 @@ class Torrent:
         
         ssh = self.__ssh
         adb = self.__adb 
-        new_torrent = False
         downloads = []
         non_downloads = []
 
@@ -37,9 +35,9 @@ class Torrent:
                 ssh.notify('ERROR', 'Invalid torrent type.')
                 continue
             
-            magnet = torrent.search()
+            torrent.search()
 
-            if magnet is not None:
+            if torrent.magnet is not None:
                 title = 'Downloading'
                 content = f"{meta['title'].title()}: {torrent.name}" if meta['type'] == 'series' else torrent.name
                 log(f'Beginning download:\n{content}')
@@ -47,9 +45,8 @@ class Torrent:
                 torrent.download()
 
                 if torrent.downloaded:
-                    download = f"{torrent._name} (Episode {meta['e']})" if meta['type'] == 'series' else {torrent._name}
+                    download = f"{meta['title']}: {torrent.name} (Episode {meta['e']})" if meta['type'] == 'series' else {torrent.name}
                     downloads.append(download)
-                    log(f'Download Complete:\n{torrent.name}')
                     adb.push_log()
                     ssh.notify('Downloads', f'{torrent.name}: Complete!')
                     torrent.format()
