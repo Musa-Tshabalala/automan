@@ -1,5 +1,5 @@
 from .show import Show
-from core.utils import soup, imdb, log
+from core.utils import soup, imdb, log, get_mime
 import re, shutil, os
 from pathlib import Path
 
@@ -21,38 +21,41 @@ class Movie(Show):
         return self.magnet
     
     def format(self):
+        if self._path is None or self._quarantine is None:
+            log(f'ERROR:\n{self._path} is not a working directory.')
+            return False, f'Path for {self._title} found'
+        
+        ok, msg = self.malware_safe()
+
+        if not ok:
+            self._malware = True
+            return msg
+
         base_path = Path(self._path)
-        mov_folder = None
         mov_name = f"{re.sub(r'\:+', ' -', self._name)} " + f"({self.meta['y']})"
-        movie_in_base = None
-        movie_path = base_path / mov_name
+        movie_path = str(base_path / mov_name)
 
         base_path.mkdir(parents=True, exist_ok=True)
 
-        for child in base_path.iterdir():
-            if child.suffix.lower() == '.aria2':
+        for child in self._quarantine.iterdir():
+            mime = get_mime(child)
+            if child.is_dir():
+                for sub_child in child.iterdir():
+                    mime = get_mime(sub_child)
+                    if mime in Show.MIME_SET:
+                        movie_path += sub_child.suffix.lower()
+                        shutil.move(str(sub_child), movie_path)
+            elif mime in Show.MIME_SET:
+                movie_path += child.suffix.lower()
+                shutil.move(str(child), movie_path)
+            else:
                 os.remove(child)
                 
-            if child.suffix.lower() == '.mp4' or child.suffix.lower() == '.mkv':
-                movie = str(movie_path) + child.suffix.lower()
-                movie_in_base = child
-                shutil.move(str(child), movie)
+        for child in Show.quarantine.iterdir():
+            if child.is_dir():
+                shutil.rmtree(child)
             else:
-                if 'bluray' in child.name.lower() and child.is_dir():
-                    mov_folder = child
-        
-        if movie_in_base is not None:
-            return
-        
-        if mov_folder is None:
-            log(f'{mov_name} was not found.')
-            return
-
-        for file in mov_folder.iterdir():
-            if file.suffix.lower() == '.mp4' or file.suffix.lower() == '.mkv':
-                movie = str(movie_path) + file.suffix.lower()
-                shutil.move(str(file), movie)
-                shutil.rmtree(str(mov_folder))
+                os.remove(child)
 
 
         

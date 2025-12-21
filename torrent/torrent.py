@@ -5,7 +5,7 @@ from core.ssh import SSH
 from backup.sftp import torr_sftp
 from backup.rsync import push
 from core.config import torr_dest
-import asyncio, time, os
+import asyncio, time, os, sys
 
 class Torrent:
     def __init__(self, adb_client, ssh_client, win_me):
@@ -22,8 +22,12 @@ class Torrent:
         downloads = []
         non_downloads = []
 
+        malware = torr_db.query('SELECT magnet FROM malware')
+        malware = malware[0] if malware else { 'magnet': [] }
+
         for meta in torr:
             torrent = None
+            meta['malware'] = malware['magnet']
 
             if meta['type'] == 'series':
                 torrent = Series(meta)
@@ -37,6 +41,8 @@ class Torrent:
             
             torrent.search()
 
+            print(f'Searching for {meta['title']}')
+
             if torrent.magnet is not None:
                 title = 'Downloading'
                 content = f"{meta['title'].title()}: {torrent.name}" if meta['type'] == 'series' else torrent.name
@@ -45,34 +51,47 @@ class Torrent:
                 torrent.download()
 
                 if torrent.downloaded:
-                    download = f"{meta['title']}: {torrent.name} (Episode {meta['e']})" if meta['type'] == 'series' else {torrent.name}
-                    downloads.append(download)
-                    adb.push_log()
-                    ssh.notify('Downloads', f'{torrent.name}: Complete!')
-                    torrent.format()
-                    id = meta['id']
-                    if meta['type'] == 'series':
-                        e = meta['e']
-                        max_e = meta['max_e']
-                        if int(e) >= int(max_e):
-                            torr_db.execute(
-                                """
-                                DELETE FROM torrents WHERE id = %s; 
-                                """,
-                                (id,)
-                            )
+                    msg = torrent.format()
+                    if not torrent.malware:
+                        download = f"{meta['title']}: {torrent.name} (Episode {meta['e']})" if meta['type'] == 'series' else {torrent.name}
+                        downloads.append(download)
+                        ssh.notify('Downloads', f'{torrent.name}: Complete!')
+                        id = meta['id']
+                        if meta['type'] == 'series':
+                            e = meta['e']
+                            max_e = meta['max_e']
+                            if int(e) >= int(max_e):
+                                torr_db.execute(
+                                    """
+                                    DELETE FROM torrents WHERE id = %s; 
+                                    """,
+                                    (id,)
+                                )
+                            else:
+                                next_e = str(int(e) + 1)
+                                torr_db.execute("UPDATE torrents SET e = %s WHERE id = %s;", (next_e, id))
                         else:
-                            next_e = str(int(e) + 1)
-                            torr_db.execute("UPDATE torrents SET e = %s WHERE id = %s;", (next_e, id))
+                            torr_db.execute("DELETE FROM torrents WHERE id = %s", (id,))
                     else:
-                        torr_db.execute("DELETE FROM torrents WHERE id = %s", (id,))
+                        log(f'{torrent.name} was virus infected and effectively removed\n{msg}')
+                        malware['magnet'].append(torrent.magnet)
+                        torr.append(meta)
+                        torr_db.execute(
+                            '''
+                            UPDATE malware
+                            SET magnet = array_append(COALESCE(magnet, '{}'), %s)
+                            WHERE id = 1;
+                            ''',
+                            (torrent.magnet,)
+                        )
+
+                        ssh.notify('Downloads', f'{torrent.name}: Malware detected!')
             else:
                 non_downloads.append(meta['title'])
                 continue
 
         if non_downloads:
             log(f'Shows Skipped:\n{"\n".join(non_downloads)}'.strip())
-
 
         if downloads:
             with SSH(self.win_me, ssh.key_file) as windows:
