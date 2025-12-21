@@ -57,7 +57,7 @@ class Series(Show):
             else:
                 os.remove(child)
 
-        for child in Show.quarantine:
+        for child in Show.quarantine.iterdir():
             if child.is_dir():
                 shutil.rmtree(child)
             else:

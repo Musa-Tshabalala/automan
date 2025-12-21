@@ -40,9 +40,7 @@ class Torrent:
                 continue
             
             torrent.search()
-
-            print(f'Searching for {meta['title']}')
-
+            
             if torrent.magnet is not None:
                 title = 'Downloading'
                 content = f"{meta['title'].title()}: {torrent.name}" if meta['type'] == 'series' else torrent.name

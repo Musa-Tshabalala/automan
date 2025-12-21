@@ -51,7 +51,6 @@ def torr_sftp(client, src, dest):
                 else:
                     try:
                         sftp.stat(remote_path)
-                        print(f"Skipping existing file: {remote_path}")
                     except FileNotFoundError:
                         sftp.put(local_path, remote_path)
 

@@ -80,8 +80,6 @@ class Show(ABC):
         
         download = run(f"aria2c --seed-ratio=0 --seed-time=0 --dir='{path}' '{self.magnet}'")
 
-        print(download)
-
         torr = self._name if self._name is not None else self._title.title()
 
         if '(OK):download completed.' in download:
