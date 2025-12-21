@@ -44,7 +44,6 @@ class Show(ABC):
         mime = get_mime(child)
         if mime in Show.MALWARE_SET:
             log(f'Malware of mime {mime} detected:\n{child}')
-            print('Malware detected:', child)
             return True, f'Malware: {mime}'
         
         return False, mime
@@ -56,8 +55,6 @@ class Show(ABC):
             if child.is_dir():
                 for sub_child in child.iterdir():
                     malware, msg = self.is_malware(sub_child)
-                    if malware:
-                        print('Removing directory containing malware:', child)
             else:
                 malware, msg = self.is_malware(child)
 
@@ -68,7 +65,7 @@ class Show(ABC):
                 else:
                     os.remove(child)
         
-        return True, 'Safe' if not malware else False, msg
+        return (True, 'Safe') if not malware else (False, msg)
                         
     def download(self):
         if self.magnet is None:
