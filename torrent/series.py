@@ -1,7 +1,7 @@
 from .show import Show
 from pathlib import Path
-from core.utils import soup, imdb, log, get_mime
-import re, shutil, os
+from core.utils import soup, imdb, log
+import re
 
 class Series(Show):
     def search(self):
@@ -21,47 +21,29 @@ class Series(Show):
         return self.magnet
     
     def format(self):
-        if self._path is None or self._quarantine is None:
+        if self._path is None:
             log(f'ERROR:\n{self._path} is not a working directory.')
-            return False, f'Path for {self._title} found'
+            return
         
-        ok, msg = self.malware_safe()
+        malware = self.is_malware()
 
-        if not ok:
+        if malware:
+            self.cleanup(Show.quarantine)
             self._malware = True
-            return msg
+            return
 
         base_path = Path(self._path)
 
         s = self._meta['s']
         e = f"{int(self._meta['e']):02}"
-        rename_title = f"{e}. {re.sub(r'\:+', ' -', self._name)}.mkv" if self._name is not None else f'Episode {e}.mkv'
+        rename_title = f"{e}. {re.sub(r'\:+', ' -', self._name)}" if self._name is not None else f'Episode {e}'
 
         season_folder = base_path / f'Season {s}'
 
         season_folder.mkdir(parents=True, exist_ok=True)
-        new_mkv = season_folder / rename_title
+        new_mkv = str(season_folder / rename_title)
 
-        for child in self._quarantine.iterdir():
-            mime = get_mime(child)
-            if child.is_dir():
-                for sub_child in child.iterdir():
-                    mime = get_mime(sub_child)
-
-                    if mime in Show.MIME_SET:
-                        shutil.move(str(sub_child), str(new_mkv))
-
-                shutil.rmtree(child)
-            elif mime in Show.MIME_SET:
-                shutil.move(str(child), str(new_mkv))
-            else:
-                os.remove(child)
-
-        for child in Show.quarantine.iterdir():
-            if child.is_dir():
-                shutil.rmtree(child)
-            else:
-                os.remove(child)
+        self.cleanup(Show.quarantine) if self.move(self._quarantine, new_mkv) else log(f'{new_mkv}: Not found')
                        
         
         

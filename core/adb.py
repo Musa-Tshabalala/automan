@@ -32,6 +32,6 @@ class ADB:
     def push_log(self):
         return (
             run(f'adb -s {self.me} push {logfile} /sdcard/backup_logs')
-            if self.me
+            if self.me is not None
             else log('Could not push log: No connection established')
         )

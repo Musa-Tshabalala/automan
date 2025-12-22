@@ -77,6 +77,6 @@ def imdb(meta):
         return None
     
 def get_mime(path: str) -> str:
-    return run(f"file --mime-type -b '{path}'")
+    return run(f'file --mime-type -b "{path}"')
     
 ############################################################################################

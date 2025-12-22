@@ -40,32 +40,40 @@ class Show(ABC):
     def search(self):
         pass
 
-    def is_malware(self, child):
-        mime = get_mime(child)
-        if mime in Show.MALWARE_SET:
-            log(f'Malware of mime {mime} detected:\n{child}')
-            return True, f'Malware: {mime}'
-        
-        return False, mime
-    
-    def malware_safe(self):
-        malware = False
-        msg = None
+    def is_malware(self):
+        found_malware = False
+
         for child in self._quarantine.iterdir():
             if child.is_dir():
-                for sub_child in child.iterdir():
-                    malware, msg = self.is_malware(sub_child)
+                if self.is_malware(child):
+                    found_malware = True
             else:
-                malware, msg = self.is_malware(child)
+                is_bad = get_mime(child) in Show.MALWARE_SET
+                if is_bad:
+                    log(f'Malware: {child}')
+                    found_malware = True
 
-        if malware:
-            for child in Show.quarantine.iterdir():
-                if child.is_dir():
-                    shutil.rmtree(child)
-                else:
-                    os.remove(child)
-        
-        return (True, 'Safe') if not malware else (False, msg)
+        return found_malware
+    
+    def move(self, src: Path, to: str) -> bool:
+        video = False
+        for child in src.iterdir():
+            if child.is_dir():
+                if self.move(child, to):
+                    video = True
+            else:
+                if get_mime(child) in Show.MIME_SET:
+                    shutil.move(str(child), to + child.suffix.lower())
+                    video = True
+
+        return video
+    
+    def cleanup(self, dir):
+        for child in dir.iterdir():
+            if child.is_dir():
+                shutil.rmtree(child)
+            else:
+                os.remove(child)
                         
     def download(self):
         if self.magnet is None:

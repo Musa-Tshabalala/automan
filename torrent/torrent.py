@@ -35,7 +35,6 @@ class Torrent:
                 torrent = Movie(meta)
             else:
                 log(f'ERROR Invalid torrent type:\n{meta}')
-                adb.push_log()
                 ssh.notify('ERROR', 'Invalid torrent type.')
                 continue
             
@@ -49,7 +48,7 @@ class Torrent:
                 torrent.download()
 
                 if torrent.downloaded:
-                    msg = torrent.format()
+                    torrent.format()
                     if not torrent.malware:
                         download = f"{meta['title']}: {torrent.name} (Episode {meta['e']})" if meta['type'] == 'series' else {torrent.name}
                         downloads.append(download)
@@ -71,7 +70,8 @@ class Torrent:
                         else:
                             torr_db.execute("DELETE FROM torrents WHERE id = %s", (id,))
                     else:
-                        log(f'{torrent.name} was virus infected and effectively removed\n{msg}')
+                        log(f'{torrent.name} was virus infected and effectively removed')
+                        adb.push_log()
                         malware['magnet'].append(torrent.magnet)
                         torr.append(meta)
                         torr_db.execute(
@@ -113,11 +113,9 @@ class Torrent:
 
                     if ok:
                         log(msg)
-                        adb.push_log()
                         ssh.notify('Server Push', msg)
                     else:
                         log(f'Failed to push to Windows:\n{msg}')
-                        adb.push_log()
                         ssh.notify('Server Push', 'Redirecting Downloads to Phone.')
                         asyncio.run(push(ssh))
         
