@@ -40,10 +40,10 @@ class Show(ABC):
     def search(self):
         pass
 
-    def is_malware(self):
+    def is_malware(self, dir):
         found_malware = False
 
-        for child in self._quarantine.iterdir():
+        for child in dir.iterdir():
             if child.is_dir():
                 if self.is_malware(child):
                     found_malware = True

@@ -25,7 +25,7 @@ class Series(Show):
             log(f'ERROR:\n{self._path} is not a working directory.')
             return
         
-        malware = self.is_malware()
+        malware = self.is_malware(self._quarantine)
 
         if malware:
             self.cleanup(Show.quarantine)
