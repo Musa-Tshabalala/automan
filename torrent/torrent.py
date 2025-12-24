@@ -67,6 +67,8 @@ class Torrent:
                             else:
                                 next_e = str(int(e) + 1)
                                 torr_db.execute("UPDATE torrents SET e = %s WHERE id = %s;", (next_e, id))
+                                meta['e'] = next_e
+                                torr.append(meta)
                         else:
                             torr_db.execute("DELETE FROM torrents WHERE id = %s", (id,))
                     else:
