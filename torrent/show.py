@@ -54,17 +54,16 @@ class Show(ABC):
 
         return found_malware
     
-    def move(self, src: Path, to: str) -> bool:
+    def move(self, src: Path, to: str, mkv = 0) -> bool:
         video = False
-        count = 0 
         for child in src.iterdir():
             if child.is_dir():
-                if self.move(child, to):
+                if self.move(child, to, mkv):
                     video = True
             else:
                 if get_mime(child) in Show.MIME_SET:
-                    count += 1
-                    shutil.move(str(child), to + ' ' + count + child.suffix.lower())
+                    mkv += 1
+                    shutil.move(str(child), to + ' ' + str(mkv) + child.suffix.lower())
                     video = True
 
         return video
