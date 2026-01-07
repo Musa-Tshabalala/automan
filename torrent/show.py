@@ -56,13 +56,15 @@ class Show(ABC):
     
     def move(self, src: Path, to: str) -> bool:
         video = False
+        count = 0 
         for child in src.iterdir():
             if child.is_dir():
                 if self.move(child, to):
                     video = True
             else:
                 if get_mime(child) in Show.MIME_SET:
-                    shutil.move(str(child), to + child.suffix.lower())
+                    count += 1
+                    shutil.move(str(child), to + ' ' + count + child.suffix.lower())
                     video = True
 
         return video
