@@ -50,7 +50,7 @@ class Torrent:
                 if torrent.downloaded:
                     torrent.format()
                     if not torrent.malware:
-                        downloads.append(f"{meta['title']}: {torrent.name} (Episode {meta['e']})" if meta['type'] == 'series' else {torrent.name})
+                        downloads.append(f"{meta['title']}: {torrent.name} (Episode {meta['e']})" if meta['type'] == 'series' else torrent.name)
                         ssh.notify('Downloads', f'{torrent.name}: Complete!')
                         id = meta['id']
                         if meta['type'] == 'series':
