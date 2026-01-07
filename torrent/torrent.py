@@ -50,14 +50,14 @@ class Torrent:
                 if torrent.downloaded:
                     torrent.format()
                     if not torrent.malware:
-                        download = f"{meta['title']}: {torrent.name} (Episode {meta['e']})" if meta['type'] == 'series' else {torrent.name}
-                        downloads.append(download)
+                        downloads.append(f"{meta['title']}: {torrent.name} (Episode {meta['e']})" if meta['type'] == 'series' else {torrent.name})
                         ssh.notify('Downloads', f'{torrent.name}: Complete!')
                         id = meta['id']
                         if meta['type'] == 'series':
                             e = meta['e']
                             max_e = meta['max_e']
                             if int(e) >= int(max_e):
+                                log(f"Removing {meta['title']} from the database")
                                 torr_db.execute(
                                     """
                                     DELETE FROM torrents WHERE id = %s; 
@@ -70,9 +70,10 @@ class Torrent:
                                 meta['e'] = next_e
                                 torr.append(meta)
                         else:
+                            log(f"Removing {meta['title']} from the database")
                             torr_db.execute("DELETE FROM torrents WHERE id = %s", (id,))
                     else:
-                        log(f'{torrent.name} was virus infected and effectively removed')
+                        log(f'{torrent.name} contained malicious content and was effectively removed')
                         adb.push_log()
                         malware['magnet'].append(torrent.magnet)
                         torr.append(meta)
@@ -95,7 +96,7 @@ class Torrent:
 
         if downloads:
             with SSH(self.win_me, ssh.key_file) as windows:
-                log(f"Downloads:\n{"\n".join(downloads)}".strip())
+                log(f"Downloads:\n{'\n'.join(downloads)}".strip())
                 attempt = 0
                 tries = 3
                 powershell = windows.connect()

@@ -42,7 +42,6 @@ class Show(ABC):
 
     def is_malware(self, dir):
         found_malware = False
-
         for child in dir.iterdir():
             if child.is_dir():
                 if self.is_malware(child):
